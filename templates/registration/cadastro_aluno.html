@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Cadastro de Aluno | Sistema Acadêmico{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Cadastro de Aluno
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Crie sua conta para acessar as tarefas
+            </p>
+        </div>
+        
+        <form class="mt-8 space-y-6" method="post">
+            {% csrf_token %}
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% if form.errors %}
+                <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                    {% for field, errors in form.errors.items %}
+                        {% for error in errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
+            <div class="space-y-4">
+                {% for field in form %}
+                    <div>
+                        <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            {{ field.label }}
+                        </label>
+                        <input id="{{ field.id_for_label }}" name="{{ field.name }}" type="{{ field.field.widget.input_type|default:'text' }}" 
+                               class="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm" 
+                               value="{{ field.value|default:'' }}" {% if field.field.required %}required{% endif %}>
+                        {% if field.help_text %}
+                            <p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+                
+                <!-- Seleção de Professor -->
+                {% if professores %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        👨🏫 Escolher Professor
+                    </label>
+                    <select name="professor_escolhido" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="automatico">🤖 Conectar automaticamente</option>
+                        {% for prof in professores %}
+                            <option value="{{ prof.id }}">👨🏫 {{ prof.first_name|default:prof.username }} {{ prof.last_name }}</option>
+                        {% endfor %}
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500">Escolha um professor específico ou deixe automático</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                    Cadastrar como Aluno
+                </button>
+            </div>
+            
+            <div class="text-center space-y-4">
+                {% if professores %}
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <p class="text-sm text-green-700 font-medium mb-2">✅ Professores Disponíveis:</p>
+                    {% for prof in professores %}
+                        <p class="text-xs text-green-600">👨🏫 {{ prof.first_name|default:prof.username }}</p>
+                    {% endfor %}
+                    <p class="text-xs text-green-600 mt-2">Você será conectado automaticamente!</p>
+                </div>
+                {% else %}
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <p class="text-sm text-yellow-700">⚠️ Nenhum professor cadastrado ainda. Você pode se cadastrar e aguardar.</p>
+                </div>
+                {% endif %}
+                
+                <div class="border-t pt-4">
+                    <p class="text-sm text-gray-600">
+                        Já tem conta? <a href="/auth/login/" class="text-indigo-600 hover:text-indigo-500 font-medium">Fazer login</a>
+                    </p>
+                    <p class="text-sm text-gray-600 mt-2">
+                        É professor? <a href="{% url 'tarefas:cadastro_professor' %}" class="text-indigo-600 hover:text-indigo-500 font-medium">Cadastre-se aqui</a>
+                    </p>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

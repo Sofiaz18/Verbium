@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}Criar Tema | Professor{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Assistente IA -->
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-xl shadow-lg border sticky top-8">
+                <h2 class="text-xl font-semibold mb-4 text-purple-600">🤖 Gerador de Temas IA</h2>
+                <p class="text-sm text-gray-600 mb-4">Gere temas realistas para redação</p>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Área de Conhecimento</label>
+                    <select id="area-conhecimento" class="w-full p-2 border border-gray-300 rounded-md">
+                        <option value="geral">Geral</option>
+                        <option value="educacao">Educação</option>
+                        <option value="tecnologia">Tecnologia</option>
+                        <option value="meio-ambiente">Meio Ambiente</option>
+                        <option value="sociedade">Sociedade</option>
+                        <option value="saude">Saúde</option>
+                        <option value="cultura">Cultura</option>
+                    </select>
+                </div>
+                
+                <button type="button" id="gerar-tema-ia" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 mb-3">
+                    🚀 Gerar Tema
+                </button>
+                
+                <button type="button" id="inserir-tema" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 disabled:opacity-50" disabled>
+                    📋 Inserir no Formulário
+                </button>
+                
+                <div id="loading-tema" class="hidden text-center py-4">
+                    <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                    <p class="mt-2 text-sm text-gray-600">Gerando tema...</p>
+                </div>
+                
+                <div id="preview-tema" class="hidden mt-4 p-4 bg-purple-50 rounded-lg border max-h-64 overflow-y-auto">
+                    <h4 class="font-semibold text-purple-800 mb-2">Tema Gerado:</h4>
+                    <div id="conteudo-tema" class="text-sm text-gray-700"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Formulário Principal -->
+        <div class="lg:col-span-2">
+            <div class="bg-white p-6 rounded-xl shadow-lg border">
+                <header class="mb-6 border-b pb-4">
+                    <h1 class="text-3xl font-bold text-gray-900">📝 Novo Tema</h1>
+                    <p class="text-gray-600 mt-1">Crie um tema de redação</p>
+                    <a href="{% url 'tarefas:lista_redacoes' %}" class="inline-block mt-2 text-indigo-600 hover:text-indigo-800 font-medium">
+                        ← Voltar para Redações
+                    </a>
+                </header>
+
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <div class="p-3 mb-2 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-800{% elif message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %} shadow-sm" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                🏷️ Título do Tema
+                            </label>
+                            <input type="text" name="titulo" id="titulo" required 
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                   placeholder="Ex: Os desafios da educação digital no Brasil">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                📋 Enunciado Completo
+                            </label>
+                            <textarea name="enunciado" id="enunciado" rows="6" required
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                      placeholder="A partir da leitura dos textos motivadores..."></textarea>
+                            <p class="text-xs text-gray-500 mt-1">💡 Use a IA ao lado para gerar um enunciado completo</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                📚 Textos de Apoio
+                            </label>
+                            <textarea name="textos_apoio" id="textos_apoio" rows="4"
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                      placeholder="Texto 1: ...&#10;Texto 2: ...&#10;Texto 3: ..."></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                📄 Arquivo do Tema (PDF)
+                            </label>
+                            <input type="file" name="arquivo_tema" accept=".pdf" 
+                                   class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            <p class="text-xs text-gray-500 mt-1">📎 Opcional: Envie um PDF com material complementar para os alunos</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    ⏰ Prazo de Entrega
+                                </label>
+                                <input type="datetime-local" name="data_expiracao" required
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    📏 Mín. Palavras
+                                </label>
+                                <input type="number" name="palavras_min" value="200" min="100" max="1000"
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">
+                                    📏 Máx. Palavras
+                                </label>
+                                <input type="number" name="palavras_max" value="500" min="200" max="1500"
+                                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t">
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-lg transition duration-200 shadow-lg">
+                            ✅ Publicar Tema de Redação
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let temaGerado = '';
+
+document.getElementById('gerar-tema-ia').addEventListener('click', function() {
+    const area = document.getElementById('area-conhecimento').value;
+    
+    document.getElementById('loading-tema').classList.remove('hidden');
+    document.getElementById('preview-tema').classList.add('hidden');
+    
+    const formData = new FormData();
+    formData.append('area', area);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    fetch('{% url "tarefas:gerar_tema_ia" %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        temaGerado = data.tema;
+        document.getElementById('conteudo-tema').innerHTML = data.tema.replace(/\n/g, '<br>');
+        document.getElementById('preview-tema').classList.remove('hidden');
+        document.getElementById('inserir-tema').disabled = false;
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao gerar tema. Tente novamente.');
+    })
+    .finally(() => {
+        document.getElementById('loading-tema').classList.add('hidden');
+    });
+});
+
+document.getElementById('inserir-tema').addEventListener('click', function() {
+    if (!temaGerado) return;
+    
+    // Extrair partes do tema gerado
+    const linhas = temaGerado.split('\n');
+    let titulo = '';
+    let enunciado = '';
+    let textos = '';
+    
+    let secaoAtual = '';
+    
+    linhas.forEach(linha => {
+        linha = linha.trim();
+        if (linha.startsWith('TÍTULO:')) {
+            titulo = linha.replace('TÍTULO:', '').trim();
+            secaoAtual = 'titulo';
+        } else if (linha.startsWith('ENUNCIADO:')) {
+            secaoAtual = 'enunciado';
+        } else if (linha.startsWith('TEXTOS DE APOIO:')) {
+            secaoAtual = 'textos';
+        } else if (linha && secaoAtual === 'enunciado') {
+            enunciado += linha + '\n';
+        } else if (linha && secaoAtual === 'textos') {
+            textos += linha + '\n';
+        }
+    });
+    
+    // Preencher formulário
+    if (titulo) document.getElementById('titulo').value = titulo;
+    if (enunciado) document.getElementById('enunciado').value = enunciado.trim();
+    if (textos) document.getElementById('textos_apoio').value = textos.trim();
+    
+    // Feedback visual
+    this.innerHTML = '✅ Tema Inserido!';
+    this.classList.remove('bg-green-600', 'hover:bg-green-700');
+    this.classList.add('bg-gray-500');
+    this.disabled = true;
+    
+    setTimeout(() => {
+        this.innerHTML = '📋 Inserir no Formulário';
+        this.classList.remove('bg-gray-500');
+        this.classList.add('bg-green-600', 'hover:bg-green-700');
+        this.disabled = false;
+    }, 2000);
+});
+</script>
+{% endblock %}

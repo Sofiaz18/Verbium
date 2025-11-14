@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Verbium{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        .alert.success { background-color: #10b981; }
+        .alert.error { background-color: #ef4444; }
+        .alert.warning { background-color: #f59e0b; }
+        .alert.info { background-color: #3b82f6; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-lg border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <a href="{% url 'tarefas:home' %}" class="text-xl font-bold text-indigo-600 hover:text-indigo-800 transition duration-150">Verbium</a>
+                </div>
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        <span class="text-gray-700">Olá, <strong>{{ user.first_name|default:user.username }}</strong>!</span>
+                        {% if user.is_superuser %}
+                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-xs font-semibold">Professor</span>
+                            <a href="{% url 'tarefas:dashboard' %}" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Dashboard</a>
+                            <a href="{% url 'tarefas:ajuda' %}" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Ajuda</a>
+                        {% else %}
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">Aluno</span>
+                            <a href="{% url 'tarefas:dashboard' %}" class="text-green-600 hover:text-green-800 font-medium text-sm">Dashboard</a>
+                            <a href="{% url 'tarefas:ajuda' %}" class="text-green-600 hover:text-green-800 font-medium text-sm">Ajuda</a>
+                        {% endif %}
+                        <a href="{% url 'tarefas:logout' %}" class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-md text-sm font-medium transition duration-150">Sair</a>
+                    {% else %}
+                        <a href="/auth/login/" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md font-medium transition duration-150">Entrar</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Verbium</h3>
+                    <p class="text-gray-300 text-sm">Plataforma especializada em redações com correção inteligente por IA.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Funcionalidades</h3>
+                    <ul class="text-gray-300 text-sm space-y-2">
+                        <li>• Temas de redação</li>
+                        <li>• Correção automática por IA</li>
+                        <li>• 5 competências</li>
+                        <li>• Sistema de comentários</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-4">Suporte</h3>
+                    <p class="text-gray-300 text-sm mb-2">Desenvolvido para fins educacionais</p>
+                    <p class="text-gray-300 text-sm">&copy; 2024 Verbium</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

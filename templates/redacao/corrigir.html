@@ -1,0 +1,273 @@
+{% extends 'base.html' %}
+
+{% block title %}Corrigir Redação | Sistema Acadêmico{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <header class="mb-8 bg-white p-6 rounded-xl shadow-lg border">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">✏️ Corrigir Redação</h1>
+                <p class="text-gray-600 mt-1">{{ entrega.aluno.first_name|default:entrega.aluno.username }} - {{ entrega.tema.titulo }}</p>
+            </div>
+            <a href="{% url 'tarefas:entregas_tema' entrega.tema.id %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
+                ← Voltar
+            </a>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Redação do Aluno -->
+        <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Texto da Redação -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border">
+                <h3 class="text-lg font-semibold mb-4">📝 Redação do Aluno</h3>
+                <div class="bg-gray-50 p-4 rounded-lg border mb-4">
+                    <div class="text-gray-700 whitespace-pre-line">{{ entrega.texto }}</div>
+                </div>
+                <div class="text-sm text-gray-600">
+                    📊 {{ entrega.palavras_count }} palavras | 📅 {{ entrega.data_entrega|date:"d/m/Y H:i" }}
+                </div>
+            </div>
+
+            <!-- Formulário de Correção -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border">
+                <h3 class="text-lg font-semibold mb-6">🎯 Correção da Redação</h3>
+                
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <!-- Competências de Avaliação -->
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8">
+                        <div class="bg-blue-50 p-4 rounded-lg border">
+                            <label class="block text-sm font-semibold text-blue-800 mb-2">C1 - Norma Culta</label>
+                            <input type="number" name="c1" min="0" max="200" step="20" 
+                                   value="{% if analise_ia %}{{ analise_ia.nota_ia_c1 }}{% else %}120{% endif %}"
+                                   class="w-full p-2 border border-blue-300 rounded focus:ring-2 focus:ring-blue-500">
+                            <div class="text-xs text-blue-600 mt-1">0-200 pontos</div>
+                        </div>
+                        
+                        <div class="bg-green-50 p-4 rounded-lg border">
+                            <label class="block text-sm font-semibold text-green-800 mb-2">C2 - Tema</label>
+                            <input type="number" name="c2" min="0" max="200" step="20"
+                                   value="{% if analise_ia %}{{ analise_ia.nota_ia_c2 }}{% else %}120{% endif %}"
+                                   class="w-full p-2 border border-green-300 rounded focus:ring-2 focus:ring-green-500">
+                            <div class="text-xs text-green-600 mt-1">0-200 pontos</div>
+                        </div>
+                        
+                        <div class="bg-yellow-50 p-4 rounded-lg border">
+                            <label class="block text-sm font-semibold text-yellow-800 mb-2">C3 - Argumentação</label>
+                            <input type="number" name="c3" min="0" max="200" step="20"
+                                   value="{% if analise_ia %}{{ analise_ia.nota_ia_c3 }}{% else %}120{% endif %}"
+                                   class="w-full p-2 border border-yellow-300 rounded focus:ring-2 focus:ring-yellow-500">
+                            <div class="text-xs text-yellow-600 mt-1">0-200 pontos</div>
+                        </div>
+                        
+                        <div class="bg-purple-50 p-4 rounded-lg border">
+                            <label class="block text-sm font-semibold text-purple-800 mb-2">C4 - Coesão</label>
+                            <input type="number" name="c4" min="0" max="200" step="20"
+                                   value="{% if analise_ia %}{{ analise_ia.nota_ia_c4 }}{% else %}120{% endif %}"
+                                   class="w-full p-2 border border-purple-300 rounded focus:ring-2 focus:ring-purple-500">
+                            <div class="text-xs text-purple-600 mt-1">0-200 pontos</div>
+                        </div>
+                        
+                        <div class="bg-red-50 p-4 rounded-lg border">
+                            <label class="block text-sm font-semibold text-red-800 mb-2">C5 - Proposta</label>
+                            <input type="number" name="c5" min="0" max="200" step="20"
+                                   value="{% if analise_ia %}{{ analise_ia.nota_ia_c5 }}{% else %}120{% endif %}"
+                                   class="w-full p-2 border border-red-300 rounded focus:ring-2 focus:ring-red-500">
+                            <div class="text-xs text-red-600 mt-1">0-200 pontos</div>
+                        </div>
+                    </div>
+
+                    <!-- Total -->
+                    <div class="text-center mb-8 p-4 bg-gray-50 rounded-lg border">
+                        <div class="text-2xl font-bold text-gray-800" id="nota-total">600</div>
+                        <div class="text-sm text-gray-600">Nota Total / 1000</div>
+                    </div>
+
+                    <!-- Comentários por Competência -->
+                    <div class="space-y-4 mb-8">
+                        <div>
+                            <label class="block text-sm font-semibold text-blue-800 mb-2">💬 Comentário C1 - Norma Culta</label>
+                            <textarea name="comentario_c1" rows="2" 
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Comentários sobre domínio da norma culta...">{% if analise_ia %}{{ analise_ia.sugestao_c1 }}{% endif %}</textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-green-800 mb-2">💬 Comentário C2 - Tema e Tipologia</label>
+                            <textarea name="comentario_c2" rows="2"
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                                      placeholder="Comentários sobre compreensão do tema...">{% if analise_ia %}{{ analise_ia.sugestao_c2 }}{% endif %}</textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-yellow-800 mb-2">💬 Comentário C3 - Argumentação</label>
+                            <textarea name="comentario_c3" rows="2"
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500"
+                                      placeholder="Comentários sobre argumentação...">{% if analise_ia %}{{ analise_ia.sugestao_c3 }}{% endif %}</textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-purple-800 mb-2">💬 Comentário C4 - Coesão</label>
+                            <textarea name="comentario_c4" rows="2"
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"
+                                      placeholder="Comentários sobre coesão e coerência...">{% if analise_ia %}{{ analise_ia.sugestao_c4 }}{% endif %}</textarea>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-red-800 mb-2">💬 Comentário C5 - Proposta de Intervenção</label>
+                            <textarea name="comentario_c5" rows="2"
+                                      class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                                      placeholder="Comentários sobre proposta de intervenção...">{% if analise_ia %}{{ analise_ia.sugestao_c5 }}{% endif %}</textarea>
+                        </div>
+                    </div>
+
+                    <!-- Comentário Geral -->
+                    <div class="mb-8">
+                        <label class="block text-sm font-semibold text-gray-800 mb-2">📝 Comentário Geral</label>
+                        <textarea name="comentario_geral" rows="4"
+                                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500"
+                                  placeholder="Comentário geral sobre a redação...">{% if analise_ia %}{{ analise_ia.analise_geral }}{% endif %}</textarea>
+                    </div>
+
+                    <!-- Botão de Salvar -->
+                    <div class="text-center">
+                        <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg text-lg">
+                            ✅ Finalizar Correção
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Painel Lateral -->
+        <div class="lg:col-span-1 space-y-6">
+            
+            <!-- Análise da IA -->
+            {% if analise_ia %}
+            <div class="bg-white p-6 rounded-xl shadow-lg border">
+                <h3 class="text-lg font-semibold mb-4 text-purple-600">🤖 Sugestão da IA</h3>
+                <div class="text-center mb-4">
+                    <div class="text-2xl font-bold text-purple-600">{{ analise_ia.nota_total_ia }}/1000</div>
+                    <div class="text-sm text-gray-600">Nota sugerida</div>
+                </div>
+                
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span>C1:</span>
+                        <span class="font-semibold">{{ analise_ia.nota_ia_c1 }}/200</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>C2:</span>
+                        <span class="font-semibold">{{ analise_ia.nota_ia_c2 }}/200</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>C3:</span>
+                        <span class="font-semibold">{{ analise_ia.nota_ia_c3 }}/200</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>C4:</span>
+                        <span class="font-semibold">{{ analise_ia.nota_ia_c4 }}/200</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span>C5:</span>
+                        <span class="font-semibold">{{ analise_ia.nota_ia_c5 }}/200</span>
+                    </div>
+                </div>
+                
+                <div class="mt-4">
+                    <button onclick="usarNotasIA()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded-lg text-sm">
+                        🤖 Usar Notas da IA
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Informações do Aluno -->
+            <div class="bg-white p-6 rounded-xl shadow-lg border">
+                <h3 class="text-lg font-semibold mb-4">👨🎓 Informações</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Aluno:</span>
+                        <span class="font-semibold">{{ entrega.aluno.first_name|default:entrega.aluno.username }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Entrega:</span>
+                        <span class="font-semibold">{{ entrega.data_entrega|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Palavras:</span>
+                        <span class="font-semibold">{{ entrega.palavras_count }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Status:</span>
+                        <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-semibold">
+                            {{ entrega.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Critérios de Avaliação -->
+            <div class="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-xl border">
+                <h3 class="text-lg font-semibold mb-4 text-blue-800">📋 Critérios</h3>
+                <div class="text-xs text-blue-700 space-y-2">
+                    <div><strong>C1:</strong> Norma culta da língua</div>
+                    <div><strong>C2:</strong> Compreensão do tema</div>
+                    <div><strong>C3:</strong> Argumentação consistente</div>
+                    <div><strong>C4:</strong> Coesão e coerência</div>
+                    <div><strong>C5:</strong> Proposta de solução</div>
+                </div>
+                
+                <div class="mt-4 text-xs text-blue-600">
+                    <div><strong>Níveis:</strong></div>
+                    <div>0-40: Insuficiente</div>
+                    <div>60-100: Regular</div>
+                    <div>120-160: Bom</div>
+                    <div>180-200: Excelente</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Calcular nota total automaticamente
+function calcularTotal() {
+    const c1 = parseInt(document.querySelector('input[name="c1"]').value) || 0;
+    const c2 = parseInt(document.querySelector('input[name="c2"]').value) || 0;
+    const c3 = parseInt(document.querySelector('input[name="c3"]').value) || 0;
+    const c4 = parseInt(document.querySelector('input[name="c4"]').value) || 0;
+    const c5 = parseInt(document.querySelector('input[name="c5"]').value) || 0;
+    
+    const total = c1 + c2 + c3 + c4 + c5;
+    document.getElementById('nota-total').textContent = total;
+}
+
+// Usar notas sugeridas pela IA
+function usarNotasIA() {
+    {% if analise_ia %}
+    document.querySelector('input[name="c1"]').value = {{ analise_ia.nota_ia_c1 }};
+    document.querySelector('input[name="c2"]').value = {{ analise_ia.nota_ia_c2 }};
+    document.querySelector('input[name="c3"]').value = {{ analise_ia.nota_ia_c3 }};
+    document.querySelector('input[name="c4"]').value = {{ analise_ia.nota_ia_c4 }};
+    document.querySelector('input[name="c5"]').value = {{ analise_ia.nota_ia_c5 }};
+    calcularTotal();
+    {% endif %}
+}
+
+// Adicionar listeners para recalcular total
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input[type="number"]');
+    inputs.forEach(input => {
+        input.addEventListener('input', calcularTotal);
+    });
+    calcularTotal(); // Calcular inicial
+});
+</script>
+{% endblock %}

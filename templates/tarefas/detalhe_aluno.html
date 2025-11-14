@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ tarefa.titulo }} | Detalhe{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <header class="mb-8 border-b pb-4 flex justify-between items-center">
+        <h1 class="text-3xl font-extrabold text-gray-900">{{ tarefa.titulo }}</h1>
+        <a href="{% url 'tarefas:lista_tarefas' %}" class="text-indigo-600 hover:text-indigo-800 font-medium transition duration-150">
+            ← Voltar para a Lista
+        </a>
+    </header>
+
+    <!-- Detalhes da Tarefa -->
+    <div class="bg-white p-6 rounded-xl shadow-2xl border border-gray-100 mb-8">
+        <h2 class="text-xl font-bold mb-4 text-gray-800">Descrição</h2>
+        <p class="text-gray-700 whitespace-pre-line mb-4">{{ tarefa.descricao }}</p>
+        <hr class="my-4">
+        
+        <div class="flex flex-wrap justify-between text-sm text-gray-600">
+            <p><span class="font-semibold">Criado por:</span> {{ tarefa.professor.username }}</p>
+            <p><span class="font-semibold">Prazo de Entrega:</span> 
+                <span class="{% if tarefa.is_expired %}text-red-600 font-bold{% else %}text-green-600 font-bold{% endif %}">
+                    {{ tarefa.data_expiracao|date:"d/m/Y H:i" }}
+                </span>
+            </p>
+        </div>
+    </div>
+    
+    <!-- Mensagens do Django -->
+    {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+                <div class="p-4 mb-2 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-800{% elif message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %} shadow-sm font-medium" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Status de Entrega do Aluno -->
+    {% if entrega_existente %}
+        <div class="bg-green-50 p-6 rounded-xl border border-green-200 shadow-md mb-8">
+            <h3 class="text-xl font-bold text-green-700 mb-3">✅ Sua Entrega Foi Recebida</h3>
+            <p class="text-sm text-green-600 mb-2">
+                <span class="font-semibold">Entregue em:</span> {{ entrega_existente.data_entrega|date:"d/m/Y H:i" }}
+            </p>
+            <p class="text-sm text-green-600 mb-2">
+                <span class="font-semibold">Seu Arquivo:</span> 
+                <a href="{{ entrega_existente.arquivo.url }}" target="_blank" class="text-indigo-600 hover:underline">
+                    Visualizar Arquivo
+                </a>
+            </p>
+            <p class="text-sm text-green-600 mb-2">
+                <span class="font-semibold">Status:</span> 
+                {% if entrega_existente.status == 'aprovada' %}
+                    <span class="text-lg font-bold text-green-600">✓ APROVADA</span>
+                {% elif entrega_existente.status == 'rejeitada' %}
+                    <span class="text-lg font-bold text-red-600">✗ REJEITADA</span>
+                {% else %}
+                    <span class="text-lg font-bold text-yellow-600">⏳ PENDENTE</span>
+                {% endif %}
+            </p>
+            <p class="text-sm text-green-600">
+                <span class="font-semibold">Nota:</span> 
+                {% if entrega_existente.nota %}
+                    <span class="text-lg font-bold">{{ entrega_existente.nota }}</span>
+                {% else %}
+                    Aguardando avaliação do professor.
+                {% endif %}
+            </p>
+            {% if entrega_existente.comentarios_professor %}
+            <p class="text-sm text-green-600">
+                <span class="font-semibold">Comentários:</span> {{ entrega_existente.comentarios_professor }}
+            </p>
+            {% endif %}
+        </div>
+
+    {% elif pode_entregar %}
+        <!-- Formulário de Entrega (Se o prazo não expirou e não entregou) -->
+        <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-200 shadow-md">
+            <h3 class="text-xl font-bold text-indigo-700 mb-4">Enviar Sua Entrega</h3>
+            <form method="post" enctype="multipart/form-data" action="{% url 'tarefas:detalhe_tarefa_entrega' tarefa.id %}">
+                {% csrf_token %}
+                
+                <div class="mb-4">
+                    <label for="{{ form.arquivo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-1">
+                        {{ form.arquivo.label }}
+                    </label>
+                    <!-- O campo de arquivo deve ter o atributo 'required' para garantir a submissão -->
+                    {{ form.arquivo }}
+                    {% for error in form.arquivo.errors %}
+                        <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+                    {% endfor %}
+                    <p class="text-xs text-gray-500 mt-1">Envie seu arquivo (ex: .pdf, .docx, .zip).</p>
+                </div>
+                
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 shadow-lg mt-4">
+                    Finalizar Entrega
+                </button>
+            </form>
+        </div>
+
+    {% else %}
+        <!-- Prazo Expirado e Não Entregue -->
+        <div class="bg-red-50 p-6 rounded-xl border border-red-200 shadow-md mb-8">
+            <h3 class="text-xl font-bold text-red-700 mb-3">❌ Prazo Expirado</h3>
+            <p class="text-red-600">O prazo para a entrega desta tarefa terminou em {{ tarefa.data_expiracao|date:"d/m/Y H:i" }}. Você não pode mais submeter o arquivo.</p>
+        </div>
+
+    {% endif %}
+
+</div>
+{% endblock %}

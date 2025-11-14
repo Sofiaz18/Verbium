@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ tema.titulo }} | Verbium{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <header class="mb-8 bg-white p-6 rounded-xl shadow-lg border">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">📝 {{ tema.titulo }}</h1>
+                <p class="text-gray-600 mt-1">Tema de Redação</p>
+            </div>
+            <a href="{% url 'tarefas:lista_redacoes' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
+                ← Voltar
+            </a>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Conteúdo do Tema -->
+        <div class="lg:col-span-2">
+            <div class="bg-white p-6 rounded-xl shadow-lg border mb-6">
+                <h3 class="text-lg font-semibold mb-4">📋 Enunciado</h3>
+                <div class="text-gray-700 mb-6">{{ tema.enunciado|linebreaks }}</div>
+                
+                {% if tema.textos_apoio %}
+                <div class="border-t pt-6">
+                    <h4 class="font-semibold text-gray-800 mb-3">📖 Textos de Apoio</h4>
+                    <div class="text-gray-600">{{ tema.textos_apoio|linebreaks }}</div>
+                </div>
+                {% endif %}
+
+                {% if tema.arquivo_tema %}
+                <div class="border-t pt-6">
+                    <h4 class="font-semibold text-gray-800 mb-3">📄 Material Complementar</h4>
+                    <a href="{{ tema.arquivo_tema.url }}" target="_blank" class="inline-flex items-center bg-indigo-100 text-indigo-700 px-4 py-2 rounded-lg hover:bg-indigo-200 transition">
+                        📎 Baixar arquivo (PDF)
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Painel Lateral -->
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-xl shadow-lg border mb-6">
+                <h3 class="text-lg font-semibold mb-4">ℹ️ Informações</h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Prazo:</span>
+                        <span class="font-semibold">{{ tema.data_expiracao|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Palavras:</span>
+                        <span class="font-semibold">{{ tema.palavras_min }}-{{ tema.palavras_max }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Status:</span>
+                        {% if tema.is_expired %}
+                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">⏰ Expirado</span>
+                        {% else %}
+                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">✅ Ativo</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            {% if not user.is_superuser %}
+                {% if entrega_existente %}
+                <div class="bg-blue-50 p-6 rounded-xl border mb-6">
+                    <h3 class="text-blue-800 font-semibold mb-3">✅ Redação Entregue</h3>
+                    <p class="text-blue-700 text-sm mb-4">Você já entregou esta redação em {{ entrega_existente.data_entrega|date:"d/m/Y H:i" }}</p>
+                    <a href="{% url 'tarefas:ver_feedback_redacao' entrega_existente.id %}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg text-center">
+                        👁️ Ver Feedback
+                    </a>
+                </div>
+                {% else %}
+                    {% if not tema.is_expired %}
+                    <div class="bg-green-50 p-6 rounded-xl border mb-6">
+                        <h3 class="text-green-800 font-semibold mb-3">✍️ Pronto para escrever?</h3>
+                        <p class="text-green-700 text-sm mb-4">Leia atentamente o tema e comece sua redação</p>
+                        <a href="{% url 'tarefas:escrever_redacao' tema.id %}" class="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg text-center">
+                            📝 Escrever Redação
+                        </a>
+                    </div>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+            
+            <div class="bg-gradient-to-br from-purple-50 to-indigo-50 p-6 rounded-xl border">
+                <h3 class="text-lg font-semibold mb-4 text-purple-800">🤖 Correção IA</h3>
+                <p class="text-sm text-purple-700 mb-4">Sua redação será analisada automaticamente!</p>
+                <ul class="text-xs text-purple-600 space-y-1">
+                    <li>✅ 5 competências</li>
+                    <li>✅ Feedback detalhado</li>
+                    <li>✅ Nota 0-1000 pontos</li>
+                    <li>✅ Sugestões de melhoria</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

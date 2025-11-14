@@ -1,0 +1,85 @@
+{% extends 'base.html' %}
+
+{% block title %}Correções Pendentes | Sistema Acadêmico{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <header class="mb-8 bg-white p-6 rounded-xl shadow-lg border">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold text-gray-900">📝 Correções Pendentes</h1>
+                <p class="text-gray-600 mt-1">{{ entregas_pendentes.count }} redação{% if entregas_pendentes.count != 1 %}ões{% endif %} aguardando correção</p>
+            </div>
+            <a href="{% url 'tarefas:lista_redacoes' %}" class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg">
+                ← Voltar
+            </a>
+        </div>
+    </header>
+
+    {% if entregas_pendentes %}
+        <div class="grid gap-6">
+            {% for entrega in entregas_pendentes %}
+            <div class="bg-white p-6 rounded-xl shadow-lg border hover:shadow-xl transition-shadow">
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-3">
+                            <h3 class="text-xl font-semibold text-gray-900">{{ entrega.tema.titulo }}</h3>
+                            <span class="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-semibold">
+                                {% if entrega.status == 'ia_analisada' %}
+                                    🤖 IA Analisada
+                                {% else %}
+                                    ⏳ Pendente
+                                {% endif %}
+                            </span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-600">👨🎓 Aluno:</span>
+                                <span class="font-semibold">{{ entrega.aluno.first_name|default:entrega.aluno.username }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-600">📅 Entrega:</span>
+                                <span class="font-semibold">{{ entrega.data_entrega|date:"d/m/Y H:i" }}</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-600">📊 Palavras:</span>
+                                <span class="font-semibold">{{ entrega.palavras_count }}</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Preview do texto -->
+                        <div class="bg-gray-50 p-4 rounded-lg border mb-4">
+                            <p class="text-gray-700 text-sm">
+                                {{ entrega.texto|truncatewords:30 }}...
+                            </p>
+                        </div>
+                        
+                        {% if entrega.analise_ia %}
+                        <div class="flex items-center gap-2 mb-4">
+                            <span class="text-purple-600">🤖 Sugestão IA:</span>
+                            <span class="font-bold text-purple-600">{{ entrega.analise_ia.nota_total_ia }}/1000</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="ml-6">
+                        <a href="{% url 'tarefas:corrigir_rapido' entrega.id %}" 
+                           class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg inline-flex items-center gap-2">
+                            ✏️ Corrigir
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="text-center py-12">
+            <div class="text-6xl mb-4">🎉</div>
+            <h3 class="text-xl font-semibold text-gray-900 mb-2">Nenhuma correção pendente!</h3>
+            <p class="text-gray-600">Todas as redações foram corrigidas.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

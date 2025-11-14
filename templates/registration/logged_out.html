@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block title %}Logout | Sistema Acadêmico{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8 text-center">
+        <div>
+            <div class="mx-auto h-12 w-12 text-green-600">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                Logout realizado com sucesso!
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600">
+                Você foi desconectado do Sistema de Tarefas Acadêmico
+            </p>
+        </div>
+        
+        <div class="mt-8 space-y-4">
+            <a href="/auth/login/" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150">
+                Fazer Login Novamente
+            </a>
+            
+            <div class="text-center">
+                <p class="text-sm text-gray-600">
+                    <strong>Credenciais para teste:</strong><br>
+                    Professor: admin / admin123<br>
+                    Aluno: aluno1 / senha123
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

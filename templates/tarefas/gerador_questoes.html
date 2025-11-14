@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Gerador de Questões IA | Sistema Acadêmico{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <header class="mb-8 border-b pb-4">
+        <h1 class="text-3xl font-bold text-gray-900">🤖 Gerador de Questões com IA</h1>
+        <p class="text-gray-600 mt-2">Crie questões automaticamente para suas tarefas</p>
+        <a href="{% url 'tarefas:lista_tarefas' %}" class="text-indigo-600 hover:text-indigo-800 font-medium mt-3 inline-block">
+            ← Voltar para Tarefas
+        </a>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        <!-- Formulário de Geração -->
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-xl shadow-lg border">
+                <h2 class="text-xl font-semibold mb-4">Configurações</h2>
+                
+                <form id="form-gerador">
+                    {% csrf_token %}
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Matéria</label>
+                        <select name="materia" class="w-full p-2 border border-gray-300 rounded-md">
+                            {% for materia in materias %}
+                                <option value="{{ materia }}">{{ materia|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quantidade</label>
+                        <select name="quantidade" class="w-full p-2 border border-gray-300 rounded-md">
+                            <option value="3">3 questões</option>
+                            <option value="5" selected>5 questões</option>
+                            <option value="10">10 questões</option>
+                            <option value="15">15 questões</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Questão</label>
+                        <select name="tipo_questao" class="w-full p-2 border border-gray-300 rounded-md">
+                            <option value="dissertativa">Dissertativa</option>
+                            <option value="objetiva">Objetiva</option>
+                            <option value="pratica">Prática</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <label class="flex items-center">
+                            <input type="checkbox" name="usar_ia_real" value="true" class="mr-2">
+                            <span class="text-sm font-medium text-gray-700">🤖 Usar IA Real (OpenRouter)</span>
+                        </label>
+                        <p class="text-xs text-gray-500 mt-1">Questões mais elaboradas e personalizadas</p>
+                    </div>
+                    
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200">
+                        🚀 Gerar Questões
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Resultados -->
+        <div class="lg:col-span-2">
+            <div id="loading" class="hidden text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                <p class="mt-2 text-gray-600">Gerando questões com IA...</p>
+            </div>
+            
+            <div id="resultados" class="hidden">
+                <div class="bg-white p-6 rounded-xl shadow-lg border mb-6">
+                    <h2 class="text-xl font-semibold mb-4">
+                        <span id="titulo-questoes">📝 Questões Geradas</span>
+                        <span id="badge-ia" class="hidden ml-2 px-2 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">🤖 IA Real</span>
+                    </h2>
+                    <div id="questoes-lista"></div>
+                    
+                    <div class="mt-6 pt-4 border-t">
+                        <button onclick="copiarQuestoes()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg mr-2">
+                            📋 Copiar Questões
+                        </button>
+                        <button onclick="gerarNovas()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                            🔄 Gerar Novas
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg border">
+                    <h2 class="text-xl font-semibold mb-4">📊 Critérios de Avaliação Sugeridos</h2>
+                    <div id="criterios-lista"></div>
+                </div>
+            </div>
+            
+            <!-- Estado Inicial -->
+            <div id="estado-inicial" class="text-center py-12">
+                <div class="text-6xl mb-4">🤖</div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">IA Pronta para Ajudar!</h3>
+                <p class="text-gray-500">Configure as opções ao lado e clique em "Gerar Questões" para começar.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('form-gerador').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    // Mostrar loading
+    document.getElementById('estado-inicial').classList.add('hidden');
+    document.getElementById('resultados').classList.add('hidden');
+    document.getElementById('loading').classList.remove('hidden');
+    
+    // Simular delay da IA
+    setTimeout(() => {
+        const formData = new FormData(this);
+        
+        fetch('{% url "tarefas:gerador_questoes" %}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            mostrarResultados(data);
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            alert('Erro ao gerar questões. Tente novamente.');
+        })
+        .finally(() => {
+            document.getElementById('loading').classList.add('hidden');
+        });
+    }, 1500); // Simula processamento da IA
+});
+
+function mostrarResultados(data) {
+    // Mostrar badge se IA real foi usada
+    if (data.ia_real) {
+        document.getElementById('badge-ia').classList.remove('hidden');
+    } else {
+        document.getElementById('badge-ia').classList.add('hidden');
+    }
+    
+    // Mostrar questões
+    const questoesHtml = data.questoes.map((questao, index) => 
+        `<div class="mb-4 p-4 ${data.ia_real ? 'bg-purple-50 border-l-4 border-purple-400' : 'bg-gray-50'} rounded-lg">
+            <h4 class="font-semibold text-gray-800">Questão ${index + 1}:</h4>
+            <p class="mt-2 text-gray-700">${questao}</p>
+        </div>`
+    ).join('');
+    
+    document.getElementById('questoes-lista').innerHTML = questoesHtml;
+    
+    // Mostrar critérios
+    const criteriosHtml = data.criterios.map(criterio => 
+        `<div class="mb-2 p-3 bg-blue-50 rounded-lg">
+            <p class="text-blue-800">${criterio}</p>
+        </div>`
+    ).join('');
+    
+    document.getElementById('criterios-lista').innerHTML = criteriosHtml;
+    
+    // Mostrar resultados
+    document.getElementById('resultados').classList.remove('hidden');
+    
+    // Salvar dados globalmente para copiar
+    window.questoesGeradas = data;
+}
+
+function copiarQuestoes() {
+    const texto = window.questoesGeradas.questoes.map((questao, index) => 
+        `${index + 1}. ${questao}`
+    ).join('\n\n');
+    
+    navigator.clipboard.writeText(texto).then(() => {
+        alert('Questões copiadas para a área de transferência!');
+    });
+}
+
+function gerarNovas() {
+    document.getElementById('form-gerador').dispatchEvent(new Event('submit'));
+}
+</script>
+{% endblock %}

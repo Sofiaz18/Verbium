@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Painel de Tarefas | Acadêmico{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 border-b pb-4">
+        <h1 class="text-4xl font-extrabold text-gray-900">
+            Painel de Tarefas
+        </h1>
+        <p class="text-gray-600 mt-2 sm:mt-0">
+            Olá, <span class="font-bold text-indigo-600">{{ user.username }}</span>! 
+            {% if user.is_superuser %}
+                <span class="text-sm px-2 py-1 bg-indigo-100 text-indigo-800 rounded-full">Professor/Admin</span>
+            {% else %}
+                <span class="text-sm px-2 py-1 bg-green-100 text-green-800 rounded-full">Aluno</span>
+            {% endif %}
+        </p>
+    </header>
+
+    <!-- Mensagens do Django -->
+    {% if messages %}
+        <div class="mb-6">
+            {% for message in messages %}
+                <div class="p-4 mb-2 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-800{% elif message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %} shadow-sm font-medium" role="alert">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Card para Criação de Tarefa (Apenas Professor) -->
+    {% if user.is_superuser %}
+    <div class="mb-8">
+        <a href="{% url 'tarefas:criar_tarefa' %}" class="block p-6 border-2 border-dashed border-indigo-400 rounded-xl text-center hover:bg-indigo-50 transition duration-300 shadow-md">
+            <svg class="w-8 h-8 mx-auto text-indigo-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="font-semibold text-indigo-600">Adicionar Nova Tarefa</span>
+            <p class="text-sm text-gray-500">Clique para criar uma nova atividade para os alunos.</p>
+        </a>
+    </div>
+    {% endif %}
+
+    <h2 class="text-2xl font-bold text-gray-800 mb-6">Tarefas Ativas</h2>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for tarefa in tarefas %}
+        <div class="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden transform hover:scale-[1.01] transition duration-300">
+            <div class="p-5">
+                <h3 class="text-xl font-bold mb-2 text-gray-900">{{ tarefa.titulo }}</h3>
+                <p class="text-gray-600 text-sm mb-4">{{ tarefa.descricao|truncatechars:100 }}</p>
+
+                <div class="text-xs font-semibold mb-4">
+                    {% if tarefa.is_expired %}
+                        <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full">EXPIRADA</span>
+                    {% else %}
+                        <span class="px-3 py-1 bg-gray-100 text-gray-700 rounded-full">Expira em: {{ tarefa.data_expiracao|date:"d/m/Y H:i" }}</span>
+                    {% endif %}
+                </div>
+
+                <!-- Status e Botão de Ação -->
+                {% if user.is_superuser %}
+                    <!-- Professor -->
+                    <p class="text-sm font-medium text-indigo-600 mb-4">
+                        Entregas Recebidas: <span class="font-bold">{{ tarefa.num_entregas|default:0 }}</span>
+                    </p>
+                    <a href="{% url 'tarefas:detalhe_tarefa_entrega' tarefa.id %}" class="block text-center mt-4 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-lg">
+                        Ver Entregas
+                    </a>
+                {% else %}
+                    <!-- Aluno -->
+                    {% if tarefa.entregue %}
+                        <p class="text-sm font-medium mb-4">
+                            {% if tarefa.status == 'aprovada' %}
+                                <span class="text-green-600 font-bold">✓ APROVADA</span>
+                            {% elif tarefa.status == 'rejeitada' %}
+                                <span class="text-red-600 font-bold">✗ REJEITADA</span>
+                            {% else %}
+                                <span class="text-yellow-600 font-bold">⏳ PENDENTE</span>
+                            {% endif %}
+                            {% if tarefa.nota %} (Nota: {{ tarefa.nota }}){% endif %}
+                        </p>
+                        <a href="{% url 'tarefas:detalhe_tarefa_entrega' tarefa.id %}" class="block text-center mt-4 bg-gray-500 hover:bg-gray-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200">
+                            Ver Detalhes (Entregue em: {{ tarefa.data_entrega_aluno|date:"d/m/Y H:i" }})
+                        </a>
+                    {% else %}
+                        <p class="text-sm font-medium text-yellow-600 mb-4">
+                            Status: <span class="font-bold">PENDENTE</span>
+                        </p>
+                        <a href="{% url 'tarefas:detalhe_tarefa_entrega' tarefa.id %}" class="block text-center mt-4 bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-200 shadow-lg">
+                            Detalhes e Envio
+                        </a>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full bg-white p-6 rounded-xl shadow-lg border border-gray-100 text-center">
+            <p class="text-lg text-gray-600 mb-2">Nenhuma tarefa cadastrada. Volte mais tarde!</p>
+            {% if user.is_superuser %}
+            <p class="text-indigo-500 font-medium">Clique no card "Adicionar Nova Tarefa" para começar.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+    

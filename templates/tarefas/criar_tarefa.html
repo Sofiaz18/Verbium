@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+{% block title %}Nova Tarefa | Sistema Acadêmico{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Assistente IA -->
+        <div class="lg:col-span-1">
+            <div class="bg-white p-6 rounded-xl shadow-lg border sticky top-8">
+                <h2 class="text-xl font-semibold mb-4 text-purple-600">🤖 Assistente IA</h2>
+                <p class="text-sm text-gray-600 mb-4">Gere questões automaticamente para sua tarefa</p>
+                
+                <div id="form-ia">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Matéria</label>
+                        <select id="materia-ia" class="w-full p-2 border border-gray-300 rounded-md">
+                            <option value="matematica">Matemática</option>
+                            <option value="portugues">Português</option>
+                            <option value="historia">História</option>
+                            <option value="ciencias">Ciências</option>
+                            <option value="geografia">Geografia</option>
+                            <option value="geral">Geral</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Quantidade</label>
+                        <select id="quantidade-ia" class="w-full p-2 border border-gray-300 rounded-md">
+                            <option value="3">3 questões</option>
+                            <option value="5" selected>5 questões</option>
+                            <option value="10">10 questões</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="flex items-center">
+                            <input type="checkbox" id="usar-ia-real" class="mr-2">
+                            <span class="text-sm font-medium text-gray-700">🤖 Usar IA Real</span>
+                        </label>
+                    </div>
+                    
+                    <button type="button" id="gerar-questoes" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 mb-3">
+                        🚀 Gerar Questões
+                    </button>
+                    
+                    <button type="button" id="inserir-questoes" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-200 disabled:opacity-50" disabled>
+                        📋 Inserir no Texto
+                    </button>
+                </div>
+                
+                <div id="loading-ia" class="hidden text-center py-4">
+                    <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                    <p class="mt-2 text-sm text-gray-600">Gerando questões...</p>
+                </div>
+                
+                <div id="preview-questoes" class="hidden mt-4 p-4 bg-purple-50 rounded-lg border">
+                    <h4 class="font-semibold text-purple-800 mb-2">Questões Geradas:</h4>
+                    <div id="lista-questoes" class="text-sm text-gray-700"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Formulário Principal -->
+        <div class="lg:col-span-2">
+            <div class="bg-white p-6 rounded-xl shadow-lg border">
+                <header class="mb-6 border-b pb-4">
+                    <h1 class="text-3xl font-bold text-gray-900">📝 Nova Tarefa</h1>
+                    <p class="text-gray-600 mt-1">Crie uma nova atividade para seus alunos</p>
+                    <a href="{% url 'tarefas:lista_tarefas' %}" class="inline-block mt-2 text-indigo-600 hover:text-indigo-800 font-medium">
+                        ← Voltar para Tarefas
+                    </a>
+                </header>
+
+                <!-- Mensagens do Django -->
+                {% if messages %}
+                    <div class="mb-4">
+                        {% for message in messages %}
+                            <div class="p-3 mb-2 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-800{% elif message.tags == 'success' %}bg-green-100 text-green-800{% else %}bg-blue-100 text-blue-800{% endif %} shadow-sm" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'tarefas:criar_tarefa' %}">
+                    {% csrf_token %}
+
+                    <div class="space-y-6">
+                        <div>
+                            <label for="{{ form.titulo.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                🏷️ {{ form.titulo.label }}
+                            </label>
+                            {{ form.titulo }}
+                            {% for error in form.titulo.errors %}
+                                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.descricao.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                📝 {{ form.descricao.label }}
+                            </label>
+                            <div class="relative">
+                                {{ form.descricao }}
+                                <div class="absolute top-2 right-2">
+                                    <button type="button" class="text-xs text-gray-500 hover:text-purple-600" onclick="document.getElementById('descricao').focus()">
+                                        🤖 Use a IA ao lado
+                                    </button>
+                                </div>
+                            </div>
+                            {% for error in form.descricao.errors %}
+                                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+
+                        <div>
+                            <label for="{{ form.data_expiracao.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                                ⏰ {{ form.data_expiracao.label }}
+                            </label>
+                            {{ form.data_expiracao }}
+                            {% for error in form.data_expiracao.errors %}
+                                <p class="text-red-500 text-xs italic mt-1">{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t">
+                        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-lg transition duration-200 shadow-lg">
+                            ✅ Publicar Tarefa
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let questoesGeradas = [];
+
+document.getElementById('gerar-questoes').addEventListener('click', function() {
+    const materia = document.getElementById('materia-ia').value;
+    const quantidade = document.getElementById('quantidade-ia').value;
+    const usarIaReal = document.getElementById('usar-ia-real').checked;
+    
+    // Mostrar loading
+    document.getElementById('form-ia').classList.add('hidden');
+    document.getElementById('loading-ia').classList.remove('hidden');
+    
+    // Simular chamada para IA
+    const formData = new FormData();
+    formData.append('materia', materia);
+    formData.append('quantidade', quantidade);
+    formData.append('usar_ia_real', usarIaReal);
+    formData.append('csrfmiddlewaretoken', document.querySelector('[name=csrfmiddlewaretoken]').value);
+    
+    fetch('{% url "tarefas:gerador_questoes" %}', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        questoesGeradas = data.questoes;
+        mostrarPreview(data.questoes);
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao gerar questões. Tente novamente.');
+    })
+    .finally(() => {
+        document.getElementById('loading-ia').classList.add('hidden');
+        document.getElementById('form-ia').classList.remove('hidden');
+    });
+});
+
+function mostrarPreview(questoes) {
+    const lista = document.getElementById('lista-questoes');
+    lista.innerHTML = questoes.map((q, i) => `<p class="mb-2"><strong>${i+1}.</strong> ${q}</p>`).join('');
+    
+    document.getElementById('preview-questoes').classList.remove('hidden');
+    document.getElementById('inserir-questoes').disabled = false;
+}
+
+document.getElementById('inserir-questoes').addEventListener('click', function() {
+    const textarea = document.getElementById('id_descricao');
+    const questoesTexto = questoesGeradas.map((q, i) => `${i+1}. ${q}`).join('\n\n');
+    
+    if (textarea.value.trim()) {
+        textarea.value += '\n\n' + questoesTexto;
+    } else {
+        textarea.value = questoesTexto;
+    }
+    
+    // Feedback visual
+    this.innerHTML = '✅ Questões Inseridas!';
+    this.classList.remove('bg-green-600', 'hover:bg-green-700');
+    this.classList.add('bg-gray-500');
+    this.disabled = true;
+    
+    setTimeout(() => {
+        this.innerHTML = '📋 Inserir no Texto';
+        this.classList.remove('bg-gray-500');
+        this.classList.add('bg-green-600', 'hover:bg-green-700');
+        this.disabled = false;
+    }, 2000);
+});
+</script>
+
+<style>
+.form-group input, .form-group textarea, .form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.form-group textarea {
+    min-height: 200px;
+    resize: vertical;
+}
+</style>
+{% endblock %}

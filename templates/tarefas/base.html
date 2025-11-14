@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+
+{% block title %}Tarefas | Acadêmico{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-4 md:p-8">
+    <!-- Título e Informações do Usuário -->
+    <div class="header-section mb-6 md:mb-8 p-6 rounded-lg shadow-lg">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-blue-800">
+            Painel de Tarefas
+        </h1>
+        <p class="text-lg text-gray-700 mt-2">
+            Olá, <span class="font-semibold">{{ user.username }}</span>!
+            {% if user.is_superuser %}
+            <span class="text-red-600">(Professor/Admin)</span>
+            {% else %}
+            <span class="text-green-600">(Aluno)</span>
+            {% endif %}
+        </p>
+    </div>
+
+    <!-- Seção de Alertas/Mensagens -->
+    {% if messages %}
+    <div class="messages mb-6">
+        {% for message in messages %}
+        <div class="alert {{ message.tags }} p-3 mb-2 rounded-lg text-white font-medium" role="alert">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Seção Principal: Lista de Tarefas -->
+    <div class="task-list grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Bloco para Adicionar Nova Tarefa (APENAS PROFESSOR) -->
+        {% if user.is_superuser %}
+        <div class="task-card add-new-card p-6 border-2 border-dashed border-blue-400 rounded-xl flex items-center justify-center transition duration-300 hover:bg-blue-50 cursor-pointer shadow-md">
+            <a href="#" class="text-blue-500 font-bold text-center text-xl">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 inline-block mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                </svg>
+                <br>
+                Adicionar Nova Tarefa
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Loop de Exemplo para Tarefas -->
+        {% for tarefa in tarefas %}
+        <div class="task-card p-6 bg-white rounded-xl shadow-lg border border-gray-200 hover:shadow-xl transition duration-300">
+            <h2 class="text-xl font-bold mb-2 text-gray-900">{{ tarefa.titulo }}</h2>
+            <p class="text-sm text-gray-600 mb-4">{{ tarefa.descricao|truncatechars:100 }}</p>
+
+            <div class="status-badge mb-4 text-xs font-semibold py-1 px-3 rounded-full inline-block 
+                {% if tarefa.entregue %} bg-green-100 text-green-700
+                {% elif tarefa.data_expiracao > now %} bg-yellow-100 text-yellow-700
+                {% else %} bg-red-100 text-red-700
+                {% endif %}">
+                {% if tarefa.entregue %} ENTREGUE {% else %} PENDENTE {% endif %}
+            </div>
+
+            <p class="text-xs text-gray-500 mb-4">
+                Expira em: <span class="font-medium">{{ tarefa.data_expiracao|date:"d/m/Y H:i" }}</span>
+            </p>
+
+            <!-- Botões de Ação -->
+            <div class="flex justify-between items-center">
+                {% if user.is_superuser %}
+                <!-- Professor: Ver Entregas -->
+                <a href="{% url 'tarefas:detalhe_tarefa_entrega' tarefa.id %}" class="action-button bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition duration-150 shadow-md">
+                    Ver Entregas ({{ tarefa.num_entregas|default:0 }})
+                </a>
+                {% else %}
+                <!-- Aluno: Entregar ou Ver Detalhes -->
+                <a href="{% url 'tarefas:detalhe_tarefa_entrega' tarefa.id %}" class="action-button bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg text-sm transition duration-150 shadow-md">
+                    Detalhes e Envio
+                </a>
+                {% endif %}
+
+                <button onclick="copyLink('{{ request.build_absolute_uri|safe }}')" class="text-gray-500 hover:text-blue-500 transition duration-150 ml-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101M19 13.828a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+        {% empty %}
+        <!-- Conteúdo se não houver tarefas -->
+        <div class="col-span-full text-center p-10 bg-gray-50 rounded-xl shadow-inner">
+            <p class="text-xl text-gray-600 font-medium">Nenhuma tarefa cadastrada. Volte mais tarde!</p>
+            {% if user.is_superuser %}
+            <p class="text-md text-gray-500 mt-2">Clique no card "Adicionar Nova Tarefa" para começar.</p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+    /* Incluindo Tailwind CSS para garantir estilos rápidos */
+    @import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
+
+    body {
+        background-color: #f7fafc; /* Cor de fundo leve */
+        font-family: 'Inter', sans-serif;
+    }
+    .header-section {
+        background: linear-gradient(135deg, #e0f2fe 0%, #ffffff 100%);
+        border-bottom: 4px solid #3b82f6; /* Borda azul */
+    }
+    .task-card {
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .task-card:hover {
+        transform: translateY(-5px);
+    }
+    .alert.success { background-color: #10b981; }
+    .alert.error { background-color: #ef4444; }
+    .alert.warning { background-color: #f59e0b; }
+
+    /* Estilo para links de ação */
+    .action-button:active {
+        transform: translateY(1px);
+        box-shadow: none;
+    }
+</style>
+
+<script>
+    function copyLink(link) {
+        // Cria um elemento de texto temporário
+        const el = document.createElement('textarea');
+        el.value = link;
+        document.body.appendChild(el);
+        
+        // Seleciona e copia o texto
+        el.select();
+        document.execCommand('copy');
+        document.body.removeChild(el);
+        
+        // Mensagem de sucesso (substitui o alert)
+        showMessage('Link copiado para a área de transferência!', 'success');
+    }
+
+    // Função simples para exibir mensagens (simulando mensagens Django)
+    function showMessage(text, type) {
+        const container = document.querySelector('.container');
+        if (!container) return;
+
+        let messageDiv = document.createElement('div');
+        messageDiv.className = `alert ${type} p-3 mb-4 rounded-lg text-white font-medium shadow-md`;
+        messageDiv.textContent = text;
+        
+        container.prepend(messageDiv);
+
+        // Remove a mensagem após 3 segundos
+        setTimeout(() => {
+            messageDiv.remove();
+        }, 3000);
+    }
+</script>
+{% endblock %}

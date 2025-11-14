@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}Verbium | Conectando Professores e Alunos{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+    <!-- Hero Section -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div class="text-center mb-12">
+            <div class="text-6xl mb-4">🎓</div>
+            <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-4">
+                Verbium
+            </h1>
+            <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                <span class="text-indigo-600 font-semibold">"Redações com IA"</span><br>
+                Plataforma especializada em redações com correção inteligente
+            </p>
+            
+            {% if user.is_authenticated %}
+                <div class="bg-white p-8 rounded-2xl shadow-xl border max-w-md mx-auto">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4 text-center">👋 Olá, {{ user.first_name|default:user.username }}!</h3>
+                    {% if user.is_superuser %}
+                        <div class="text-center mb-4">
+                            <span class="px-3 py-1 bg-indigo-100 text-indigo-800 rounded-full text-sm font-semibold">👨‍🏫 Professor</span>
+                        </div>
+                        <a href="{% url 'tarefas:dashboard' %}" class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg text-center transition duration-200 shadow-lg mb-3">
+                            📊 Meu Dashboard
+                        </a>
+                        <a href="{% url 'tarefas:criar_tema_redacao' %}" class="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-center transition duration-200 shadow-lg">
+                            📝 Novo Tema
+                        </a>
+                    {% else %}
+                        <div class="text-center mb-4">
+                            <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">👨‍🎓 Aluno</span>
+                        </div>
+                        <a href="{% url 'tarefas:dashboard' %}" class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg text-center transition duration-200 shadow-lg mb-3">
+                            📊 Meu Dashboard
+                        </a>
+                        <a href="{% url 'tarefas:lista_redacoes' %}" class="block w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-center transition duration-200 shadow-lg">
+                            📋 Minhas Redações
+                        </a>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                    <div class="bg-white p-8 rounded-2xl shadow-xl border text-center hover:shadow-2xl transition duration-300">
+                        <div class="text-4xl mb-4">👨‍🏫</div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Sou Professor</h3>
+                        <p class="text-gray-600 mb-6 text-sm">Crie temas de redação, corrija com IA e acompanhe o progresso</p>
+                        <a href="{% url 'tarefas:cadastro_professor' %}" class="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-lg mb-2">
+                            🚀 Cadastrar
+                        </a>
+                        <a href="/auth/login/" class="block w-full bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition duration-200">
+                            Já tenho conta
+                        </a>
+                    </div>
+                    
+                    <div class="bg-white p-8 rounded-2xl shadow-xl border text-center hover:shadow-2xl transition duration-300">
+                        <div class="text-4xl mb-4">👨‍🎓</div>
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">Sou Aluno</h3>
+                        <p class="text-gray-600 mb-6 text-sm">Escreva redações e receba feedback detalhado</p>
+                        <a href="{% url 'tarefas:cadastro_aluno' %}" class="block w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 shadow-lg mb-2">
+                            🚀 Cadastrar
+                        </a>
+                        <a href="/auth/login/" class="block w-full bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-6 rounded-lg transition duration-200">
+                            Já tenho conta
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">✨ Funcionalidades</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="text-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                <div class="text-3xl mb-3">🤖</div>
+                <h3 class="text-lg font-semibold mb-2 text-indigo-600">IA para Redações</h3>
+                <p class="text-gray-600 text-sm">Correção automática nas 5 competências</p>
+            </div>
+
+            <div class="text-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                <div class="text-3xl mb-3">📊</div>
+                <h3 class="text-lg font-semibold mb-2 text-green-600">Dashboard Inteligente</h3>
+                <p class="text-gray-600 text-sm">Acompanhe progresso e estatísticas em tempo real</p>
+            </div>
+
+            <div class="text-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                <div class="text-3xl mb-3">✅</div>
+                <h3 class="text-lg font-semibold mb-2 text-yellow-600">Correção Rápida</h3>
+                <p class="text-gray-600 text-sm">IA sugere notas e comentários para agilizar</p>
+            </div>
+
+            <div class="text-center p-6 bg-white rounded-xl shadow-lg hover:shadow-xl transition duration-300">
+                <div class="text-3xl mb-3">📱</div>
+                <h3 class="text-lg font-semibold mb-2 text-purple-600">Interface Responsiva</h3>
+                <p class="text-gray-600 text-sm">Funciona perfeitamente em desktop, tablet e mobile</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CTA Section -->
+    {% if not user.is_authenticated %}
+    <div class="bg-indigo-600 py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl font-bold text-white mb-4">Pronto para começar?</h2>
+            <p class="text-indigo-100 text-lg mb-8">Faça login e comece a usar o sistema agora mesmo</p>
+            <div class="space-x-4">
+                <div class="space-x-4">
+                    <a href="/auth/login/" class="inline-block bg-white text-indigo-600 font-bold py-3 px-6 rounded-lg hover:bg-gray-100 transition duration-200">
+                        Fazer Login
+                    </a>
+                    <a href="{% url 'tarefas:cadastro_aluno' %}" class="inline-block bg-green-500 text-white font-bold py-3 px-6 rounded-lg hover:bg-green-600 transition duration-200">
+                        Cadastrar-se
+                    </a>
+                </div>
+            </div>
+            <div class="mt-8 text-indigo-100 text-sm">
+                <p><strong>Para testar:</strong></p>
+                <p>Professor: admin / admin123 | Aluno: aluno1 / senha123</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
