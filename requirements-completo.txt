@@ -1,0 +1,52 @@
+# Sistema de Redações com IA - Dependências Completas
+
+# Framework Principal
+Django==5.0.4
+
+# Requisições HTTP para API
+requests==2.31.0
+
+# Manipulação de JSON (já incluído no Python)
+# json - built-in
+
+# Validação e Formulários (já incluído no Django)
+# django.forms - built-in
+
+# Banco de Dados SQLite (já incluído no Python)
+# sqlite3 - built-in
+
+# Timezone e Data/Hora (já incluído no Python)
+# datetime - built-in
+
+# Sistema de Arquivos (já incluído no Python)
+# os, pathlib - built-in
+
+# Expressões Regulares (já incluído no Python)
+# re - built-in
+
+# Números Aleatórios (já incluído no Python)
+# random - built-in
+
+# ========================================
+# DEPENDÊNCIAS OPCIONAIS PARA PRODUÇÃO:
+# ========================================
+
+# Para servidor web em produção
+# gunicorn==21.2.0
+
+# Para banco PostgreSQL em produção
+# psycopg2-binary==2.9.7
+
+# Para variáveis de ambiente
+# python-decouple==3.8
+
+# Para arquivos estáticos em produção
+# whitenoise==6.5.0
+
+# Para logs avançados
+# django-extensions==3.2.3
+
+# ========================================
+# INSTALAÇÃO:
+# ========================================
+# pip install -r requirements-completo.txt

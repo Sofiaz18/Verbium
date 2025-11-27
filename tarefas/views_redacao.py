@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
+from django.db.models import Exists, OuterRef
 from django.http import JsonResponse
 from django.utils import timezone
 from .models_redacao import RedacaoTema, RedacaoEntrega, RedacaoCorrecao, RedacaoAnaliseIA, RedacaoComentario
@@ -26,7 +27,18 @@ def lista_redacoes(request):
         })
     else:
         # Aluno vê temas disponíveis e suas entregas
-        temas_disponiveis = RedacaoTema.objects.filter(ativo=True).order_by('-data_publicacao')
+        
+        # Subquery para verificar se o aluno atual já entregou a redação para um tema
+        entregas_aluno = RedacaoEntrega.objects.filter(
+            tema=OuterRef('pk'),
+            aluno=request.user
+        )
+        
+        # Anotar cada tema com a informação se foi entregue ou não
+        temas_disponiveis = RedacaoTema.objects.filter(ativo=True).annotate(
+            usuario_entregou=Exists(entregas_aluno)
+        ).order_by('-data_publicacao')
+
         minhas_entregas = RedacaoEntrega.objects.filter(aluno=request.user).select_related('tema', 'correcao')
         
         return render(request, 'redacao/lista_aluno.html', {
